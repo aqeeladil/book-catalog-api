@@ -94,7 +94,7 @@ This project uses **pytest** with a clear and structured testing strategy:
 
 * **Unit tests** (`tests/test_crud.py`):
 
-  * Directly test CRUD functions with a test database.
+  * Directly test CRUD functions with a test database (uses a temporary SQLite file (tempfile.NamedTemporaryFile) to ensure proper cleanup across all operating systems).
   * Ensure business logic works independently from routes.
 
 * **Integration tests** (`tests/test_main.py`):

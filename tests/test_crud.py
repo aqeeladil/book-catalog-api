@@ -1,28 +1,32 @@
 import os
 import pytest
+import tempfile
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from app import models, schemas, crud
 from app.database import Base
 
-# Setup test database
-TEST_SQLALCHEMY_DATABASE_URL = "sqlite:///./test_books.db"
+# ✅ Use NamedTemporaryFile with delete=False
+temp_file = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
+db_path = temp_file.name
+temp_file.close()
 
-engine = create_engine(
-    TEST_SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
-)
+TEST_SQLALCHEMY_DATABASE_URL = f"sqlite:///{db_path}"
+
+engine = create_engine(TEST_SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-# Create tables
 Base.metadata.create_all(bind=engine)
 
 @pytest.fixture(scope="module")
 def db():
-    db = TestingSessionLocal()
-    yield db
-    db.close()
-    os.remove("test_books.db")
-
+    session = TestingSessionLocal()
+    yield session
+    session.close()
+    try:
+        os.remove(db_path)  # 🔁 now this should succeed on Windows
+    except PermissionError:
+        print(f"⚠️ Could not delete test DB: {db_path}")
+        
 @pytest.fixture
 def created_book(db):
     book_in = schemas.BookCreate(title="Fixture Book", author="Tester", published_year=2023)
