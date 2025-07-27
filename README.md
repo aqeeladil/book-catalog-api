@@ -78,7 +78,7 @@ uvicorn app.main:app --reload
 Run all unit and integration tests with:
 
 ```bash
-pytest
+python -m pytest
 ```
 
 This will execute tests under the `tests/` folder, covering:
